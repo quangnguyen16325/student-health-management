@@ -187,5 +187,150 @@ public class UserDAO {
             }
         }
     }
-        
+    
+    public void updateRoleInDatabase(String email, String newRole) {
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            String sql = "UPDATE users SET roleUser = ? WHERE email = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, newRole);
+                pstmt.setString(2, email);
+
+                int rowsUpdated = pstmt.executeUpdate();
+                if (rowsUpdated > 0) {
+                    System.out.println("Role updated successfully in database.");
+                } else {
+                    System.out.println("Failed to update role in database.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error updating role in database: " + e.getMessage());
+        }
+    }
+    
+    public void addUserRequest(String email) {
+        try {
+            Users user = getUserByEmail(email);
+            if (user != null) {
+                String sql = "INSERT INTO requestFromUsers (email, firstName, lastName, roleUser) VALUES (?, ?, ?, ?)";
+
+                try (Connection conn = DriverManager.getConnection(DB_URL);
+                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                    pstmt.setString(1, user.getEmail());
+                    pstmt.setString(2, user.getLastName());
+                    pstmt.setString(3, user.getFirstName());
+                    pstmt.setString(4, user.getRoleUser());
+                    
+                    int rowsInserted = pstmt.executeUpdate();
+                    if (rowsInserted > 0) {
+                        JOptionPane.showMessageDialog(null, "The request has been sent to the server");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Failed sending request to server");
+                    }
+
+                } catch (SQLException ex) {
+                    Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                System.out.println("User with email " + email + " not found.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public Users getUserByEmail(String email) {
+        Users user = null;
+        String query = "SELECT * FROM users WHERE email = ?";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    user = mapRowToUsers(rs);
+                }
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return user;
+    }
+      
+    public List<Users> getAllUserRequest() {
+        List<Users> userRequests = new ArrayList<>();
+        String query = "SELECT * FROM requestFromUsers";
+
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Users user = new Users();
+                user.setFirstName(rs.getString("firstName"));
+                user.setLastName(rs.getString("lastName"));
+                user.setEmail(rs.getString("email"));
+                user.setRoleUser(rs.getString("roleUser"));
+
+                userRequests.add(user);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return userRequests;
+    }
+    
+    public void deleteUserRequest(String email) {
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            String sql = "DELETE FROM requestFromUsers WHERE email = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, email);
+
+                int rowsDeleted = pstmt.executeUpdate();
+                if (rowsDeleted > 0) {
+                    JOptionPane.showMessageDialog(null, "The request has been successfully updated to email: " + email);
+                } else {
+                    JOptionPane.showMessageDialog(null, "No request found to delete for email: " + email);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error deleting request from database: " + e.getMessage());
+        }
+    }
+    
+    public int countUsersInRequestTable() {
+        int count = 0;
+        try (Connection conn = DriverManager.getConnection(DB_URL)) {
+            String sql = "SELECT COUNT(*) AS total FROM requestFromUsers";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                ResultSet rs = pstmt.executeQuery();
+                if (rs.next()) {
+                    count = rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error counting users in request table: " + e.getMessage());
+        }
+        return count;
+    }
+    
+    public void close() {
+        if (conn != null) {
+            try {
+                conn.close();
+                System.out.println("Connection closed.");
+            } catch (SQLException ex) {
+                Logger.getLogger(UserDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
 }

@@ -245,4 +245,15 @@ public class StudentDAO {
         emergencyContact.setAddressContact(rs.getString("addressContact"));
         return emergencyContact;
     }
+    
+    public void close() {
+        if (conn != null) {
+            try {
+                conn.close();
+                System.out.println("Connection closed.");
+            } catch (SQLException ex) {
+                Logger.getLogger(StudentDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
 }

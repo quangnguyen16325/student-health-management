@@ -2,12 +2,15 @@ package com.mycompany.ui;
 
 import com.mycompany.dao.UserDAO;
 import com.mycompany.model.Users;
+import com.mycompany.network.Server;
 import com.mycompany.until.Encode;
 import javax.swing.JOptionPane;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import javax.swing.table.DefaultTableModel;
 
@@ -16,15 +19,21 @@ public class userManagementForMaster extends javax.swing.JFrame {
     public String firstName, lastName, email, password, roleUser, userName, oldEmail, roleUserLog, userNameLog;
     private String passwordClick;
     private UserDAO userDAO;
+    private Timer timer;
+    private int countRequestUser;
+    private Server server;
     
-    public userManagementForMaster(String userName, String role) {
+    public userManagementForMaster(String userName, String role, Server server) {
         initComponents();
         userDAO = new UserDAO();
         show_table();
         this.userNameLog = userName;
         this.roleUserLog = role;
+        this.server = server;
         userLoginLabel.setText(userName);
         roleLabel.setText(roleUser);
+        updateRequestCount(); 
+        scheduleRequestCountUpdate();
     }
 
     /**
@@ -46,6 +55,8 @@ public class userManagementForMaster extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         firstNameField = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        userRequestCount = new javax.swing.JLabel();
         lastNameField = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         emailField = new javax.swing.JTextField();
@@ -105,7 +116,7 @@ public class userManagementForMaster extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(usersTable);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 80, 593, 330));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 80, 593, 390));
 
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel7.setIcon(new javax.swing.ImageIcon("C:\\Users\\quang\\Documents\\NetBeansProjects\\DA_QLSKSV\\src\\main\\java\\images\\master.png")); // NOI18N
@@ -121,6 +132,20 @@ public class userManagementForMaster extends javax.swing.JFrame {
         jLabel3.setFont(new java.awt.Font("Cambria", 1, 12)); // NOI18N
         jLabel3.setText("Last Name");
         getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 135, -1, -1));
+
+        jButton1.setFont(new java.awt.Font("Cambria", 1, 13)); // NOI18N
+        jButton1.setIcon(new javax.swing.ImageIcon("C:\\Users\\quang\\Documents\\NetBeansProjects\\DA_QLSKSV\\src\\main\\java\\images\\information.png")); // NOI18N
+        jButton1.setText("REQUESTS");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 400, 140, 30));
+
+        userRequestCount.setFont(new java.awt.Font("Cambria", 1, 13)); // NOI18N
+        userRequestCount.setText("Users request: ");
+        getContentPane().add(userRequestCount, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 410, 110, -1));
 
         lastNameField.setFont(new java.awt.Font("Cambria", 0, 12)); // NOI18N
         getContentPane().add(lastNameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(17, 156, 270, -1));
@@ -218,11 +243,11 @@ public class userManagementForMaster extends javax.swing.JFrame {
                 nextPageButtonActionPerformed(evt);
             }
         });
-        getContentPane().add(nextPageButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 400, 220, 30));
+        getContentPane().add(nextPageButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 440, 220, 30));
 
         jLabel11.setIcon(new javax.swing.ImageIcon("C:\\Users\\quang\\Documents\\NetBeansProjects\\DA_QLSKSV\\src\\main\\java\\images\\BG_Statistics.png")); // NOI18N
         jLabel11.setText("jLabel11");
-        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 440));
+        getContentPane().add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 900, 480));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -231,6 +256,20 @@ public class userManagementForMaster extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_roleFieldActionPerformed
 
+    private void scheduleRequestCountUpdate() {
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                updateRequestCount(); 
+            }
+        }, 0, 10000); 
+    }
+
+    private void updateRequestCount() {
+        countRequestUser = userDAO.countUsersInRequestTable();
+        userRequestCount.setText("Users request: " + countRequestUser);
+    }
+    
     private void updateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtonActionPerformed
         firstName = firstNameField.getText();
         lastName = lastNameField.getText();
@@ -366,8 +405,12 @@ public class userManagementForMaster extends javax.swing.JFrame {
 
     private void nextPageButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextPageButtonActionPerformed
         this.dispose();
-        new InformationSystem(userNameLog, roleUserLog).setVisible(true);
+        new InformationSystem(userNameLog, roleUserLog, server).setVisible(true);
     }//GEN-LAST:event_nextPageButtonActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        new requestProcess(server).setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
     
     
     private String getValueAt(int row, int column) {
@@ -400,6 +443,7 @@ public class userManagementForMaster extends javax.swing.JFrame {
     private javax.swing.JButton deleteButton;
     private javax.swing.JTextField emailField;
     private javax.swing.JTextField firstNameField;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -420,6 +464,7 @@ public class userManagementForMaster extends javax.swing.JFrame {
     private javax.swing.JLabel roleLabel;
     private javax.swing.JButton updateButton;
     private javax.swing.JLabel userLoginLabel;
+    private javax.swing.JLabel userRequestCount;
     private javax.swing.JTable usersTable;
     // End of variables declaration//GEN-END:variables
 }

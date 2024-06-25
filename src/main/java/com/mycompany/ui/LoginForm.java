@@ -2,17 +2,45 @@ package com.mycompany.ui;
 
 import com.mycompany.dao.UserDAO;
 import com.mycompany.model.Users;
+import com.mycompany.network.Client;
+import com.mycompany.network.Server;
 import com.mycompany.until.Encode;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.net.Socket;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class LoginForm extends javax.swing.JFrame {
 
     private String userLog, roleUserLog;
     private UserDAO userDAO;
+    private int PORT;
     
     public LoginForm() {
         userDAO = new UserDAO();
+        PORT = 4000;
         initComponents();
+        setupKeyEvents();
+//        int startPort = 4000; // Cổng bắt đầu
+//        int maxAttempts = 10; // Số lần thử
+//        int port = startPort;
+//        boolean serverStarted = false;
+//        while (!serverStarted && port < startPort + maxAttempts) {
+//            try {
+//                Server server = Server.getServerInstance(port);
+//                server.start();
+//                System.out.println("Server started on port " + port);
+//                PORT = port; // Lưu lại cổng đã khởi động thành công
+//                serverStarted = true;
+//            } catch (IOException e) {
+//                System.err.println("Port " + port + " is already in use. Trying next port.");
+//                port++;
+//            }
+//        }
+//        if (!serverStarted) {
+//            JOptionPane.showMessageDialog(this, "Could not start server on any available ports.", "Error", JOptionPane.ERROR_MESSAGE);
+//        }
     }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -88,35 +116,127 @@ public class LoginForm extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void setupKeyEvents() {
+        // Thêm lắng nghe sự kiện cho passwordUserField
+        passwordUserField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+                    login();
+                }
+            }
+        });
+
+        // Thêm lắng nghe sự kiện cho loginButton
+        loginButton.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+                    login();
+                }
+            }
+        });
+    }
+    
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
+//        String email = emailUserField.getText();
+//        String password = String.valueOf(passwordUserField.getPassword());
+//        
+//        if (email.isEmpty()){
+//            JOptionPane.showMessageDialog(this, "Please enter Email", "Try again", JOptionPane.ERROR_MESSAGE);
+//        } else if (password.isEmpty()){
+//             JOptionPane.showMessageDialog(this, "Please enter Password", "Try again", JOptionPane.ERROR_MESSAGE);
+//        } else {
+//            password = Encode.toSHA1(password);
+//            Users user = userDAO.getAuthenticatedUser(email, password); 
+//            if (user != null){
+//                System.out.println("Login successful");
+//                userLog = user.firstName + " " + user.lastName;
+//                roleUserLog = user.roleUser;
+//                dispose();
+//                if (roleUserLog.equalsIgnoreCase("admin")){
+//                    new InformationSystem(userLog, roleUserLog).setVisible(true);
+//                } else if (roleUserLog.equalsIgnoreCase("user")){
+//                    new InformationSystemForUser(userLog, roleUserLog, email).setVisible(true);
+//                } else if (roleUserLog.equalsIgnoreCase("master")) {
+//                    new userManagementForMaster(userLog, roleUserLog).setVisible(true);
+//                }
+//            } else {
+//                JOptionPane.showMessageDialog(this, "Email or Password Invalid", "Try again", JOptionPane.ERROR_MESSAGE);
+//            }
+//        }
+        login();
+    }//GEN-LAST:event_loginButtonActionPerformed
+
+    private void login() {
         String email = emailUserField.getText();
         String password = String.valueOf(passwordUserField.getPassword());
-        
-        if (email.isEmpty()){
+
+        if (email.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter Email", "Try again", JOptionPane.ERROR_MESSAGE);
-        } else if (password.isEmpty()){
-             JOptionPane.showMessageDialog(this, "Please enter Password", "Try again", JOptionPane.ERROR_MESSAGE);
+        } else if (password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Password", "Try again", JOptionPane.ERROR_MESSAGE);
         } else {
             password = Encode.toSHA1(password);
-            Users user = userDAO.getAuthenticatedUser(email, password); 
-            if (user != null){
+            Users user = userDAO.getAuthenticatedUser(email, password);
+            if (user != null) {
                 System.out.println("Login successful");
                 userLog = user.firstName + " " + user.lastName;
                 roleUserLog = user.roleUser;
                 dispose();
-                if (roleUserLog.equalsIgnoreCase("admin")){
-                    new InformationSystem(userLog, roleUserLog).setVisible(true);
-                } else if (roleUserLog.equalsIgnoreCase("user")){
-                    new InformationSystemForUser(userLog, roleUserLog).setVisible(true);
+                if (roleUserLog.equalsIgnoreCase("admin")) {
+                    try {
+                        int startPort = 4000; 
+                        int maxAttempts = 10; 
+                        int port = startPort;
+                        boolean serverStarted = false;
+                        while (!serverStarted && port < startPort + maxAttempts) {
+                            try {
+                                Server server = Server.getServerInstance(port);
+                                server.start();
+                                System.out.println("Server started on port " + port);
+                                PORT = port; // Lưu lại cổng đã khởi động thành công
+                                serverStarted = true;
+                            } catch (IOException e) {
+                                System.err.println("Port " + port + " is already in use. Trying next port.");
+                                port++;
+                            }
+                        }
+                        if (!serverStarted) {
+                            JOptionPane.showMessageDialog(this, "Could not start server on any available ports.", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                        Server server = Server.getServerInstance(PORT);
+                        server.start();
+                        new InformationSystem(userLog, roleUserLog, server).setVisible(true);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+//                    new InformationSystem(userLog, roleUserLog).setVisible(true);
+                } else if (roleUserLog.equalsIgnoreCase("user")) {
+                    new InformationSystemForUser(userLog, roleUserLog, email).setVisible(true);
+                    try {
+                        Socket socket = new Socket("localhost", PORT); // Thay localhost bằng địa chỉ IP server nếu cần
+                        Client client = new Client(socket);
+                        client.start(userLog);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 } else if (roleUserLog.equalsIgnoreCase("master")) {
-                    new userManagementForMaster(userLog, roleUserLog).setVisible(true);
+//                    new userManagementForMaster(userLog, roleUserLog).setVisible(true);
+                    try {
+                        Server server = Server.getServerInstance(PORT);
+                        server.start();
+                        new userManagementForMaster(userLog, roleUserLog, server).setVisible(true);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Email or Password Invalid", "Try again", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }//GEN-LAST:event_loginButtonActionPerformed
-
+    }                            
+    
     private void hidePassToggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hidePassToggleActionPerformed
         togglePasswordVisibility();
     }//GEN-LAST:event_hidePassToggleActionPerformed
@@ -158,7 +278,10 @@ public class LoginForm extends javax.swing.JFrame {
             public void run() {
                 new LoginForm().setVisible(true);
             }
-        });
+        }); 
+//            new Thread(() -> {
+//                SwingUtilities.invokeLater(() -> new LoginForm().setVisible(true));
+//            }).start();
     }
     
     private void togglePasswordVisibility(){

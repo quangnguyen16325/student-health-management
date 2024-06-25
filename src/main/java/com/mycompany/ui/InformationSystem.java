@@ -3,6 +3,7 @@ package com.mycompany.ui;
 
 import com.mycompany.dao.StudentDAO;
 import com.mycompany.model.Student;
+import com.mycompany.network.Server;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JOptionPane;
@@ -26,8 +27,9 @@ public class InformationSystem extends javax.swing.JFrame {
     
     private String userName, roleUser;
     private StudentDAO studentDAO;
+    private Server server;
     
-    public InformationSystem(String userName, String role) {
+    public InformationSystem(String userName, String role, Server server) {
         initComponents();
         studentDAO = new StudentDAO();
         show_table();
@@ -356,7 +358,7 @@ public class InformationSystem extends javax.swing.JFrame {
 
     private void previousPageButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_previousPageButtonActionPerformed
         this.dispose();
-        new userManagementForMaster(userName, roleUser).setVisible(true);
+        new userManagementForMaster(userName, roleUser, server).setVisible(true);
     }//GEN-LAST:event_previousPageButtonActionPerformed
 
     private void statisticsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_statisticsButtonActionPerformed

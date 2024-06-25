@@ -2,7 +2,13 @@ package com.mycompany.ui;
 
 
 import com.mycompany.dao.StudentDAO;
+import com.mycompany.dao.UserDAO;
 import com.mycompany.model.Student;
+import com.mycompany.model.Users;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import javax.swing.JOptionPane;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,23 +19,23 @@ import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author quang
- */
 public class InformationSystemForUser extends javax.swing.JFrame {
 
     private String userName, roleUser;
     private StudentDAO studentDAO;
+    private UserDAO userDAO;
+    private String userEmail;
     
-    public InformationSystemForUser(String userName, String role) {
+    public InformationSystemForUser(String userName, String role, String email) {
         initComponents();
         studentDAO = new StudentDAO();
+        userDAO = new UserDAO();
         show_table();
         this.userName = userName;
         this.roleUser = role;
         userLoginLabel.setText(userName);
         roleLabel.setText(roleUser);
+        userEmail = email;
         
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
@@ -80,6 +86,7 @@ public class InformationSystemForUser extends javax.swing.JFrame {
         cancelButton = new javax.swing.JButton();
         currentTimeLabel = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
+        requestButton = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
         userLoginLabel = new javax.swing.JLabel();
         roleLabel = new javax.swing.JLabel();
@@ -160,6 +167,16 @@ public class InformationSystemForUser extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(153, 153, 153));
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        requestButton.setFont(new java.awt.Font("Cambria", 1, 13)); // NOI18N
+        requestButton.setText("SEND REQUEST");
+        requestButton.setToolTipText("Submit an edit request\n");
+        requestButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                requestButtonActionPerformed(evt);
+            }
+        });
+        jPanel1.add(requestButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 130, 30));
 
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel6.setIcon(new javax.swing.ImageIcon("C:\\Users\\quang\\Documents\\NetBeansProjects\\DA_QLSKSV\\src\\main\\java\\images\\user.png")); // NOI18N
@@ -260,11 +277,19 @@ public class InformationSystemForUser extends javax.swing.JFrame {
     private void logOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logOutButtonActionPerformed
         dispose();
         new LoginForm().setVisible(true);
+        studentDAO.close();
+        userDAO.close();
     }//GEN-LAST:event_logOutButtonActionPerformed
 
     private void updateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateButtonActionPerformed
         new statisticsForm().setVisible(true);
     }//GEN-LAST:event_updateButtonActionPerformed
+
+    private void requestButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_requestButtonActionPerformed
+        userDAO.getUserByEmail(userEmail);
+        userDAO.addUserRequest(userEmail);
+        
+    }//GEN-LAST:event_requestButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -282,6 +307,7 @@ public class InformationSystemForUser extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton logOutButton;
+    private javax.swing.JButton requestButton;
     private javax.swing.JLabel roleLabel;
     private javax.swing.JTextField searchFullName;
     private javax.swing.JTextField searchStudentCode;
