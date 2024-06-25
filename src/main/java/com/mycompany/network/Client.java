@@ -31,10 +31,9 @@ public class Client {
 
     public void connect(String user) {
         try {
-            // Mở luồng vào ra cho việc giao tiếp với máy chủ
             connected = true;
             System.out.println(user + " Connected to server");
-            outputStream.writeObject(user); // Gửi username lên server khi kết nối
+            outputStream.writeObject(user);
             outputStream.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,7 +42,6 @@ public class Client {
 
     public void disconnect() {
         try {
-            // Đóng kết nối với máy chủ
             if (socket != null) {
                 socket.close();
             }
@@ -71,7 +69,6 @@ public class Client {
         outputStream.flush();
     }
 
-    // Phương thức này sẽ được gọi khi start một Thread mới
     public void start(String user) {
         new Thread(() -> {
             connect(user);
@@ -81,7 +78,6 @@ public class Client {
                     // Đọc tin nhắn từ server
                     String message = "User: " + user + " " + receiveMessage();
 
-                    // Hiển thị JOptionPane trên giao diện của InformationSystemForUser
                     SwingUtilities.invokeLater(() -> {
                         JOptionPane.showMessageDialog(informationSystemForUser, message);
                     });
